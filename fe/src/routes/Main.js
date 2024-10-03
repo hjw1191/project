@@ -32,6 +32,11 @@ export function Main() {
     const stored = localStorage.getItem('viewedReservations');
     return stored ? JSON.parse(stored) : [];
   });
+  const [searchInputs, setSearchInputs] = useState({
+    departure: "",
+    arrival: "",
+    date: "",
+  });
 
   useEffect(() => {
     fetchUserEmail();
@@ -190,24 +195,20 @@ export function Main() {
     setActiveFilter(filterType);
     if (filterType === "전체") {
       setFilteredTrips(trips);
+      // 검색 조건 및 입력 필드 초기화
+      setSearchParams({ departure: "", arrival: "", date: "" });
+      setSearchInputs({ departure: "", arrival: "", date: "" });
     } else {
       const filtered = trips.filter(
         (trip) => trip.title.split(" ")[3] === filterType
       );
       setFilteredTrips(filtered);
     }
-
-    // 검색 조건 초기화
-    setSearchParams({ departure: "", arrival: "", date: "" });
-    // 입력 필드 초기화
-    document.getElementById("departure").value = "";
-    document.getElementById("arrival").value = "";
-    document.getElementById("tripDate").value = "";
   };
 
   const handleSearch = (newSearchParams) => {
     setSearchParams(newSearchParams);
-    const searchResults = applyFiltersAndSearch();
+    const searchResults = applyFiltersAndSearch(newSearchParams);
     
     if (searchResults.length === 0) {
       setPendingSearchParams(newSearchParams);
@@ -218,8 +219,13 @@ export function Main() {
   const handleConfirmWrite = async () => {
     setShowConfirmModal(false);
     if (pendingSearchParams) {
-      await createNewTrip(pendingSearchParams);
-      setPendingSearchParams(null);
+      try {
+        await createNewTrip(pendingSearchParams);
+        showNotification('검색 결과를 바탕으로 새 게시물이 작성되었습니다.', 'success');
+        setPendingSearchParams(null);
+      } catch (error) {
+        showNotification('게시물 작성에 실패했습니다.', 'error');
+      }
     }
   };
 
@@ -241,7 +247,7 @@ export function Main() {
     try {
       const token = localStorage.getItem('token');
       if (!token) {
-        alert('로그인이 필요합니다.');
+        showNotification('로그인이 필요합니다.', 'error');
         return;
       }
 
@@ -254,7 +260,7 @@ export function Main() {
       await fetchTrips();
     } catch (error) {
       console.error('게시물 생성 중 오류 발생:', error);
-      alert('게시물 생성에 실패했습니다. 다시 시도해 주세요.');
+      throw error; // 에러를 상위로 전파하여 handleConfirmWrite에서 처리할 수 있게 합니다.
     }
   };
 
@@ -297,13 +303,33 @@ export function Main() {
     navigate('/mypage', { state: { activeSection: 'MyPost', reservationId: reservationId } });
   };
 
+  const handleSearchInputChange = (e) => {
+    const { id, value } = e.target;
+    setSearchInputs(prev => ({ ...prev, [id]: value }));
+  };
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    setSearchParams(searchInputs);
+    const searchResults = applyFiltersAndSearch(searchInputs);
+    
+    if (searchResults.length === 0) {
+      setPendingSearchParams(searchInputs);
+      setShowConfirmModal(true);
+    }
+  };
+
   return (
     <div id="Main">
       <ToastContainer position="bottom-right"/>
-      <Search onSearch={handleSearch} />
+      <Search 
+        searchInputs={searchInputs}
+        onInputChange={handleSearchInputChange}
+        onSubmit={handleSearchSubmit}
+      />
       <FilterButtons
         activeFilter={activeFilter}
-        onFilterChange={setActiveFilter}
+        onFilterChange={filterTrips}
         onWriteClick={() => setIsWriteModalOpen(true)}
       />
       <h1>최근 게시글</h1>
@@ -451,33 +477,29 @@ export function Board({ isLoading, error, filteredTrips, handleEditClick, userId
   );
 }
 
-function Search({ onSearch }) {
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    const newSearchParams = {
-      departure: event.target.departure.value,
-      arrival: event.target.arrival.value,
-      date: event.target.tripDate.value,
-    };
-    onSearch(newSearchParams);
-  };
-
+function Search({ searchInputs, onInputChange, onSubmit }) {
   return (
     <section id="Search">
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={onSubmit}>
         <input
           type="text"
           id="departure"
           placeholder="출발지"
+          value={searchInputs.departure}
+          onChange={onInputChange}
         />
         <input
           type="text"
           id="arrival"
           placeholder="도착지"
+          value={searchInputs.arrival}
+          onChange={onInputChange}
         />
         <input
           type="date"
-          id="tripDate"
+          id="date"
+          value={searchInputs.date}
+          onChange={onInputChange}
         />
         <button
           type="submit"
