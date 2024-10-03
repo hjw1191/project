@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import "./Main.css";
 import { Post } from "../components/Post.js";
 import { Editor } from "../components/Editor.js";
@@ -24,11 +26,19 @@ export function Main() {
   const [isReservationLoading, setIsReservationLoading] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [pendingSearchParams, setPendingSearchParams] = useState(null);
+  const [selectedPostId, setSelectedPostId] = useState(null);
+  const boardRef = useRef(null);
 
   useEffect(() => {
-    fetchTrips();
     fetchUserEmail();
+    fetchTrips();
   }, []);
+
+  useEffect(() => {
+    if (userId !== null) {
+      fetchTrips();
+    }
+  }, [userId]);
 
   useEffect(() => {
     applyFiltersAndSearch();
@@ -45,14 +55,17 @@ export function Main() {
           ...trip,
           isReservationCompleted: trip.isReservationCompleted || false
         }));
-        console.log('Fetched trips:', tripsWithReservationStatus); // 추가된 로그
+        console.log('Fetched trips:', tripsWithReservationStatus);
         setTrips(tripsWithReservationStatus);
-        applyFiltersAndSearch(); // 필터와 검색 조건을 다시 적용합니다.
+        applyFiltersAndSearch();
+        if (userId !== null) {
+          checkForNewReservations(tripsWithReservationStatus);
+        }
       } else {
         throw new Error("서버에서 받은 데이터 구조가 예상과 다릅니다.");
       }
     } catch (error) {
-
+      console.error('Error fetching trips:', error);
       setError(error.message || "데이터를 불러오는 데 실패했습니다.");
     } finally {
       setIsLoading(false);
@@ -68,9 +81,79 @@ export function Main() {
         headers: { 'Authorization': `${token}` }
       });
       setUserId(response.data.data.id);
-   
     } catch (error) {
-  
+      console.error('사용자 정보를 가져오는데 실패했습니다:', error);
+    }
+  };
+
+  const checkForNewReservations = (trips) => {
+    console.log('Checking for new reservations. User ID:', userId);
+    const userPosts = trips.filter(trip => trip.authorId === userId);
+    console.log('User posts:', userPosts);
+    const newReservations = userPosts.filter(post => 
+      post.reservations && 
+      post.reservations.length > 0 && 
+      !post.isReservationCompleted
+    );
+    console.log('New reservations:', newReservations);
+
+    if (newReservations.length > 0) {
+      showNewReservationNotification(newReservations);
+    }
+  };
+
+  const showNewReservationNotification = (newReservations) => {
+    newReservations.forEach(post => {
+      if (post && post.id && post.title) {
+        toast.info(`새로운 예약이 있습니다: ${post.title}`, {
+          position: "bottom-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          onClick: () => handleReservationClick(post.id)
+        });
+      }
+    });
+  };
+
+  const handleReservationClick = async (postId) => {
+    console.log(`게시물 ID ${postId}로 이동합니다.`);
+    setSelectedPostId(postId);
+    
+    try {
+      setIsReservationLoading(true);
+      const selectedTrip = trips.find(trip => trip.id === postId);
+      if (selectedTrip) {
+        const reservation = await fetchUserReservation(postId);
+        const isReservationEnded = selectedTrip.title.endsWith('[예약마감]');
+
+        const updatedTrip = {
+          ...selectedTrip,
+          isReservationEnded: isReservationEnded
+        };
+
+        setUserReservation(reservation);
+        setSelectedTrip(updatedTrip);
+        setIsEditModalOpen(true);
+      }
+    } catch (error) {
+      console.error('예약 정보를 가져오는 데 실패했습니다:', error);
+      alert('예약 정보를 가져오는 데 실패했습니다. 다시 시도해 주세요.');
+    } finally {
+      setIsReservationLoading(false);
+    }
+
+    // 게시물로 스크롤
+    if (boardRef.current) {
+      setTimeout(() => {
+        const postElement = boardRef.current.querySelector(`[data-post-id="${postId}"]`);
+        if (postElement) {
+          postElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
     }
   };
 
@@ -131,18 +214,16 @@ export function Main() {
       const reservation = await fetchUserReservation(trip.id);
       const isReservationEnded = trip.title.endsWith('[예약마감]');
 
-
       const updatedTrip = {
         ...trip,
         isReservationEnded: isReservationEnded
       };
 
-
       setUserReservation(reservation);
       setSelectedTrip(updatedTrip);
       setIsEditModalOpen(true);
     } catch (error) {
-   
+      console.error('예약 정보를 가져오는 데 실패했습니다:', error);
       alert('예약 정보를 가져오는 데 실패했습니다. 다시 시도해 주세요.');
     } finally {
       setIsReservationLoading(false);
@@ -230,6 +311,7 @@ export function Main() {
 
   return (
     <div id="Main">
+      <ToastContainer />
       <Search onSearch={handleSearch} />
       <FilterButtons
         activeFilter={activeFilter}
@@ -238,11 +320,13 @@ export function Main() {
       />
       <h1>최근 게시글</h1>
       <Board
+        ref={boardRef}
         isLoading={isLoading}
         error={error}
         filteredTrips={filteredTrips}
         handleEditClick={handleEditClick}
         userId={userId}
+        selectedPostId={selectedPostId}
       />
       <Post
         isOpen={isWriteModalOpen}
@@ -272,9 +356,9 @@ export function Main() {
   );
 }
 
-export function Board({ isLoading, error, filteredTrips, handleEditClick, userId }) {
+export const Board = React.forwardRef(({ isLoading, error, filteredTrips, handleEditClick, userId, selectedPostId }, ref) => {
   return (
-    <section id="Board">
+    <section id="Board" ref={ref}>
       {isLoading ? (
         <p>데이터를 불러오는 중...</p>
       ) : error ? (
@@ -298,7 +382,8 @@ export function Board({ isLoading, error, filteredTrips, handleEditClick, userId
               return (
                 <div
                   key={trip.id || index}
-                  className={`Card ${trip.isNewlyCreated ? 'newly-created' : ''}`}
+                  data-post-id={trip.id}
+                  className={`Card ${trip.isNewlyCreated ? 'newly-created' : ''} ${selectedPostId === trip.id ? 'selected' : ''}`}
                   onClick={() => handleEditClick(trip)}
                 >
                   <div className="row1">
@@ -378,7 +463,7 @@ export function Board({ isLoading, error, filteredTrips, handleEditClick, userId
       )}
     </section>
   );
-}
+});
 
 function Search({ onSearch }) {
   const handleSubmit = (event) => {
