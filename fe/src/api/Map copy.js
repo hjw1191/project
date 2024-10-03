@@ -1,4 +1,4 @@
-                                   import '../components/Post.css'
+import '../components/Post.css'
 import { useEffect, useRef, useState, useCallback } from 'react';
 
 const KakaoMap = ({ onMapSubmit, initialTitle }) => {

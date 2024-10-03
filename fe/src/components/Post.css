@@ -10,33 +10,35 @@
   align-items: center;
   justify-content: center;
   overflow-y: scroll;
-  border-radius: 8px;
-  gap: 20px;
-  display: flex;
 }
+
 #Posting > div,
 #Editing > div,
 #Posting > form,
 #Editing > form {
   position: relative;
   padding: 20px;
-  min-width: 380px;
-  width: 380px; height: 80%;
+  width: 380px;
+  height: 80%;
   background-color: #fff;
   border-radius: 10px;
-  gap: 20px;
   box-sizing: border-box;
 }
+
 #Map {
-  width: 100%; aspect-ratio: 1;
+  width: 100%;
+  aspect-ratio: 1;
   border: 1px solid #ddd;
   border-radius: 10px;
 }
+
 .PostingForm {
   position: relative;
   display: flex;
   flex-direction: column;
+  gap: 20px;
 }
+
 .PostingForm .btn_close {
   z-index: 999;
   position: absolute;
@@ -45,12 +47,13 @@
   background: url(/public/img/close_blk.png) center/cover no-repeat;
   cursor: pointer;
 }
+
 .PostingForm .row {
-  position: relative;
-  gap: 10px;
   display: flex;
   flex-direction: column;
+  gap: 10px;
 }
+
 .PostingForm .row > h2 {
   font-size: 18px;
   font-weight: 500;
@@ -58,56 +61,103 @@
   align-items: center;
   justify-content: space-between;
 }
+
 .PostingForm .row > select,
 .PostingForm .row > input,
 .PostingForm .costResult,
 .PostingForm .wrap_payment input,
-.outline input[type="text"]:nth-child(1),
-.outline input[type="text"]:nth-child(2) { 
-  padding: 0 16px;
+.outline input[type="text"] {
   height: 44px;
+  padding: 0 16px;
   color: #444;
   font-size: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-radius: 6px;
   border: 1px solid #ddd;
+  border-radius: 6px;
+  box-sizing: border-box;
 }
+
+.outline input[type="text"] {
+  width: 100%;
+}
+
+.outline input[type="text"]:nth-child(1) {
+  border-radius: 10px 10px 0 0;
+}
+
+.outline input[type="text"]:nth-child(2),
+.outline input[type="text"]:nth-child(3) {
+  border-radius: 0;
+  margin-top: -1px;
+}
+
+.outline input[type="text"]:last-of-type {
+  border-radius: 0 0 10px 10px;
+}
+
+.outline input[type="text"]:focus {
+  z-index: 1;
+  border-color: #ff6600;
+}
+
+.waypoint-input {
+  display: none;
+}
+
+.waypoint-input.visible {
+  display: block;
+}
+
+.outline button {
+  width: 100%;
+  height: 44px;
+  margin-top: 10px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  background-color: #f8f8f8;
+  font-size: 14px;
+  cursor: pointer;
+}
+
 .PostingForm .costResult p {
   color: #666;
 }
+
 .PostingForm .wrap_label {
+  display: flex;
   gap: 10px;
   width: 100%;
-  display: flex;
 }
+
 .PostingForm label {
   flex: 1;
   padding: 20px;
   border-radius: 8px;
   border: 1px solid #ddd;
-  gap: 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 8px;
 }
+
 .wrap_payment {
-  gap: 10px;
   display: grid;
   grid-template-columns: auto auto;
+  gap: 10px;
 }
+
 .wrap_btn {
   margin-top: auto;
-  gap: 8px;
   display: flex;
   flex-wrap: wrap;
+  gap: 8px;
   width: 100%;
 }
+
 .PostingForm button:not(.btn_close) {
+  width: 100%;
+  height: 44px;
   padding: 10px;
-  width: 100%; height: 44px !important;
   border: none;
   color: white;
   border-radius: 4px;
@@ -115,30 +165,8 @@
   font-weight: bold;
   cursor: pointer;
 }
+
 .btn_modify,
 .btn_delete {
   flex: 1;
-}
-.outline input[type="text"]:nth-child(1) {
-  width:100%;
-  border-radius: 10px 10px 0 0;
-  border-left: 1px solid #ddd;
-  border-top: 1px solid #ddd;
-  border-right: 1px solid #ddd;
-  border-bottom: 1px solid #ddd;
-}
-.outline input[type="text"]:nth-child(2),
-.outline button {
-  margin-top: -1px;
-  width:100%;
-  border-radius: 0 0 10px 10px !important;
-  border-left: 1px solid #ddd;
-  border-top: 1px solid #ddd;
-  border-right: 1px solid #ddd;
-  border-bottom: 1px solid #ddd;
-}
-.outline input[type="text"]:nth-child(1):focus,
-.outline input[type="text"]:nth-child(2):focus {
-  z-index: 999;
-  border: 1px solid #ff6600;
 }
