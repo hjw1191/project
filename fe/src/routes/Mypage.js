@@ -6,8 +6,10 @@ import { MyReserve } from "../components/MyPage/Myreserve.js";
 import { Withdrawal } from "../components/MyPage/Withdrawal.js";
 import { useState, useEffect } from "react";
 import axios from "../api/axios.js";
+import { useLocation } from 'react-router-dom';
 
 export function Mypage() {
+  const location = useLocation();
   const [user, setUser] = useState();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -23,7 +25,6 @@ export function Mypage() {
             Authorization: token,
           },
         });
-        // console.log("토큰", token )
         setUser(response.data.data);
         setLoading(false);
       } catch (err) {
@@ -34,7 +35,12 @@ export function Mypage() {
     };
 
     fetchUserData();
-  }, []);
+
+    // location.state에서 activeSection을 확인
+    if (location.state && location.state.activeSection) {
+      setSelectedMenu(location.state.activeSection);
+    }
+  }, [location]);
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error}</p>;
