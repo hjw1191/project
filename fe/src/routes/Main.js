@@ -1,7 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { notify, setupNotifications } from './notifications.js';
 import "./Main.css";
 import { Post } from "../components/Post.js";
 import { Editor } from "../components/Editor.js";
@@ -27,39 +24,38 @@ export function Main() {
   const [isReservationLoading, setIsReservationLoading] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [pendingSearchParams, setPendingSearchParams] = useState(null);
-  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-  const [newReservationTripId, setNewReservationTripId] = useState(null);
-  const [checkedReservations, setCheckedReservations] = useState(new Set());
 
   useEffect(() => {
-    setupNotifications();
+    fetchTrips();
     fetchUserEmail();
   }, []);
-
-  useEffect(() => {
-    if (userId) {
-      fetchTrips();
-    }
-  }, [userId]);
 
   useEffect(() => {
     applyFiltersAndSearch();
   }, [trips, activeFilter, searchParams]);
 
   const fetchTrips = async () => {
+    setIsLoading(true);
+    setError(null);
     try {
       const response = await axios.get('/posts/gets');
       
       if (response.data && Array.isArray(response.data.data)) {
-        console.log('Fetched trips:', response.data.data);
-        setTrips(response.data.data);
-        checkForNewReservations(response.data.data);
+        const tripsWithReservationStatus = response.data.data.map(trip => ({
+          ...trip,
+          isReservationCompleted: trip.isReservationCompleted || false
+        }));
+        console.log('Fetched trips:', tripsWithReservationStatus); // 추가된 로그
+        setTrips(tripsWithReservationStatus);
+        applyFiltersAndSearch(); // 필터와 검색 조건을 다시 적용합니다.
       } else {
         throw new Error("서버에서 받은 데이터 구조가 예상과 다릅니다.");
       }
     } catch (error) {
-      console.error("Error fetching trips:", error);
-      notify('데이터를 불러오는 데 실패했습니다.', 'error');
+
+      setError(error.message || "데이터를 불러오는 데 실패했습니다.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -72,9 +68,9 @@ export function Main() {
         headers: { 'Authorization': `${token}` }
       });
       setUserId(response.data.data.id);
-      console.log("Fetched user ID:", response.data.data.id);
+   
     } catch (error) {
-      console.error("Error fetching user email:", error);
+  
     }
   };
 
@@ -232,47 +228,6 @@ export function Main() {
     }
   };
 
-  const checkForNewReservations = (trips) => {
-    if (!userId) {
-      console.log("User ID not set, skipping reservation check");
-      return;
-    }
-    console.log("Checking for new reservations. User ID:", userId);
-    const userTrips = trips.filter(trip => trip.author.id === userId);
-    console.log("User's trips:", userTrips);
-
-    const tripWithNewReservation = userTrips.find(trip => 
-      trip.reservations && 
-      trip.reservations.length > 0 && 
-      !checkedReservations.has(trip.reservations[0].id)
-    );
-
-    console.log("Trip with new reservation:", tripWithNewReservation);
-
-    if (tripWithNewReservation) {
-      setNewReservationTripId(tripWithNewReservation.id);
-      setIsConfirmModalOpen(true);
-      console.log("New reservation found. Opening modal.");
-    } else {
-      console.log("No new reservations found.");
-    }
-  };
-
-  const handleConfirmNewReservation = () => {
-    console.log(`새 예약이 확인되었습니다. 게시물 ID: ${newReservationTripId}`);
-    const trip = trips.find(t => t.id === newReservationTripId);
-    if (trip && trip.reservations && trip.reservations.length > 0) {
-      setCheckedReservations(prev => {
-        const newSet = new Set(prev);
-        newSet.add(trip.reservations[0].id);
-        console.log("Updated checked reservations:", newSet);
-        return newSet;
-      });
-    }
-    setIsConfirmModalOpen(false);
-    notify('예약을 확인했습니다.', 'success');
-  };
-
   return (
     <div id="Main">
       <Search onSearch={handleSearch} />
@@ -312,27 +267,6 @@ export function Main() {
         onClose={() => setShowConfirmModal(false)}
         onConfirm={handleConfirmWrite}
         message="검색 결과가 없습니다. 새로운 게시물을 작성하시겠습니까?"
-      />
-      <ConfirmModal
-        isOpen={isConfirmModalOpen}
-        onClose={() => {
-          console.log("Modal closed without confirmation");
-          setIsConfirmModalOpen(false);
-          notify('예약 확인을 취소했습니다.', 'warning');
-        }}
-        onConfirm={handleConfirmNewReservation}
-        message="새로운 예약이 들어왔습니다. 지금 확인하시겠습니까?"
-      />
-      <ToastContainer 
-        position="bottom-center"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
       />
     </div>
   );
