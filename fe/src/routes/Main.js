@@ -28,11 +28,19 @@ export function Main() {
   const [pendingSearchParams, setPendingSearchParams] = useState(null);
   const [selectedPostId, setSelectedPostId] = useState(null);
   const boardRef = useRef(null);
+  const [viewedReservations, setViewedReservations] = useState(() => {
+    const stored = localStorage.getItem('viewedReservations');
+    return stored ? JSON.parse(stored) : [];
+  });
 
   useEffect(() => {
     fetchUserEmail();
     fetchTrips();
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem('viewedReservations', JSON.stringify(viewedReservations));
+  }, [viewedReservations]);
 
   useEffect(() => {
     if (userId !== null) {
@@ -90,10 +98,10 @@ export function Main() {
     console.log('Checking for new reservations. User ID:', userId);
     const userPosts = trips.filter(trip => trip.authorId === userId);
     console.log('User posts:', userPosts);
-    const newReservations = userPosts.filter(post => 
-      post.reservations && 
-      post.reservations.length > 0 && 
-      !post.isReservationCompleted
+    const newReservations = userPosts.flatMap(post => 
+      (post.reservations || []).filter(reservation => 
+        !viewedReservations.includes(reservation.id)
+      )
     );
     console.log('New reservations:', newReservations);
 
@@ -103,47 +111,67 @@ export function Main() {
   };
 
   const showNewReservationNotification = (newReservations) => {
-    newReservations.forEach(post => {
-      if (post && post.id && post.title) {
-        toast.info(`새로운 예약이 있습니다: ${post.title}`, {
+    newReservations.forEach(reservation => {
+      if (reservation && reservation.id) {
+        toast.info(`새로운 예약이 있습니다: ${reservation.from}에서 ${reservation.to}로`, {
           position: "bottom-right",
-          autoClose: 5000,
+          //autoClose: 5000,
           hideProgressBar: false,
           closeOnClick: true,
           pauseOnHover: true,
           draggable: true,
           progress: undefined,
-          onClick: () => handleReservationClick(post.id)
+          onClick: () => handleReservationClick(reservation.postId)
+          
         });
+        setViewedReservations(prev => [...prev, reservation.id]);
       }
     });
   };
 
   const handleReservationClick = async (postId) => {
     console.log(`게시물 ID ${postId}로 이동합니다.`);
+    console.log('현재 trips 상태:', trips);
     setSelectedPostId(postId);
     
     try {
+      console.log('예약 정보 로딩 시작');
       setIsReservationLoading(true);
       const selectedTrip = trips.find(trip => trip.id === postId);
+      console.log('선택된 여행:', selectedTrip);
+
       if (selectedTrip) {
+        console.log('사용자 예약 정보 가져오기 시작');
         const reservation = await fetchUserReservation(postId);
+        console.log('가져온 예약 정보:', reservation);
+
         const isReservationEnded = selectedTrip.title.endsWith('[예약마감]');
+        console.log('예약 마감 여부:', isReservationEnded);
 
         const updatedTrip = {
           ...selectedTrip,
           isReservationEnded: isReservationEnded
         };
 
+        console.log('상태 업데이트 시작');
         setUserReservation(reservation);
         setSelectedTrip(updatedTrip);
         setIsEditModalOpen(true);
+        console.log('isEditModalOpen 상태 변경됨:', true);
+
+        if (reservation) {
+          setViewedReservations(prev => [...prev, reservation.id]);
+        }
+      } else {
+        console.log('선택된 여행을 찾을 수 없습니다. postId:', postId);
+        alert('해당 게시물을 찾을 수 없습니다. 페이지를 새로고침 해주세요.');
       }
     } catch (error) {
       console.error('예약 정보를 가져오는 데 실패했습니다:', error);
       alert('예약 정보를 가져오는 데 실패했습니다. 다시 시도해 주세요.');
     } finally {
       setIsReservationLoading(false);
+      console.log('예약 정보 로딩 완료');
     }
 
     // 게시물로 스크롤
@@ -152,6 +180,9 @@ export function Main() {
         const postElement = boardRef.current.querySelector(`[data-post-id="${postId}"]`);
         if (postElement) {
           postElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          console.log('게시물로 스크롤 완료');
+        } else {
+          console.log('해당 게시물 요소를 찾을 수 없습니다.');
         }
       }, 100);
     }
@@ -191,20 +222,26 @@ export function Main() {
   };
 
   const fetchUserReservation = async (postId) => {
+    console.log('fetchUserReservation 시작. postId:', postId);
     setIsReservationLoading(true);
     try {
       const token = localStorage.getItem('token');
+      console.log('토큰 확인:', token ? '존재함' : '존재하지 않음');
       const response = await axios.get('/reserve/gets', {
         headers: { 'Authorization': `${token}` }
       });
+      console.log('예약 정보 응답:', response.data);
       const userReservation = response.data.data.find(
         reservation => reservation.post && reservation.post.id === postId && reservation.bookerId === userId
       );
+      console.log('찾은 사용자 예약:', userReservation);
       return userReservation || null;
     } catch (error) {
-
+      console.error('예약 정보 가져오기 실패:', error);
+      throw error;
     } finally {
       setIsReservationLoading(false);
+      console.log('fetchUserReservation 종료');
     }
   };
 
