@@ -289,6 +289,11 @@ function PostingForm({
   const handleSubmit = (e) => {
     e.preventDefault();
     
+    if (!mapData || !mapData.startName || !mapData.endName) {
+      alert("지도에서 경로를 먼저 검색해주세요.");
+      return;
+    }
+
     // 기본 경로 문자열 생성
     let title = `${mapData.startName} -> ${mapData.endName} ${type} ${date} ${time} ${type === "택시" ? `${taxiCapacity}인` : gender}`;
 
