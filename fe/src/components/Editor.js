@@ -3,6 +3,7 @@ import { Chat } from "./Chat/Chat";
 import { useState, useEffect } from "react";
 import Map from "../api/Map";
 import axios from '../api/axios';
+import { toast } from 'react-toastify';
 
 export function Editor({
   isOpen,
@@ -16,6 +17,7 @@ export function Editor({
   isReservationLoading,
   userId,
   isReservationEnded,
+  showNotification,
 }) {
   const [showChat, setShowChat] = useState(false);
   const [userEmail, setUserEmail] = useState(null);
@@ -106,11 +108,11 @@ export function Editor({
       if (response.status) {
         onClose();
         refreshPosts();
-        console.log('서버 응답:', response.data);
+        toast.success('게시물이 성공적으로 수정되었습니다.');
       }
     } catch (error) {
       console.error('게시물 수정 중 오류 발생:', error);
-      alert('게시물을 수정하는 데 실패했습니다.');
+      toast.error('게시물을 수정하는 데 실패했습니다.');
     }
   };
 
@@ -128,11 +130,11 @@ export function Editor({
       if (response.status) {
         onClose();
         refreshPosts();
-        console.log('삭제된 게시물 ID:', editData.id);
+        toast.success('게시물이 성공적으로 삭제되었습니다.');
       }
     } catch (error) {
       console.error('게시물 삭제 중 오류 발생:', error);
-      alert('게시물을 삭제하는 데 실패했습니다.');
+      toast.error('게시물을 삭제하는 데 실패했습니다.');
     }
   };
 
@@ -159,13 +161,13 @@ export function Editor({
 
       if (response.status === 201) {
         console.log('예약 성공:', response.data);
-        alert('예약이 완료되었습니다.');
+        toast.success('예약이 완료되었습니다.');
         onClose();
         refreshPosts();
       }
     } catch (error) {
       console.error('예약 중 오류 발생:', error);
-      alert('예약에 실패했습니다.');
+      toast.error('예약에 실패했습니다.');
     }
   };
 
@@ -191,18 +193,13 @@ export function Editor({
 
       if (cancelResponse.status) {
         console.log('예약 취소 성공:', cancelResponse.data);
-        alert('예약이 취소되었습니다.');
+        toast.success('예약이 취소되었습니다.');
         onClose();
         refreshPosts();
       }
     } catch (error) {
       console.error('예약 취소 중 오류 발생:', error);
-      if (error.response) {
-        console.log('에러 응답:', error.response.data);
-        console.log('에러 상태:', error.response.status);
-        console.log('에러 헤더:', error.response.headers);
-      }
-      alert('예약 취소에 실패했습니다. 예약이 이미 취소되었거나 존재하지 않을 수 있습니다.');
+      toast.error('예약 취소에 실패했습니다. 예약이 이미 취소되었거나 존재하지 않을 수 있습니다.');
     }
   };
 
@@ -233,6 +230,7 @@ export function Editor({
             userId={userId}
             refreshPosts={refreshPosts}
             isReservationEnded={isReservationEnded}
+            showNotification={showNotification}
           />
           {showChat && <Chat postId={postId} user={user} messageList={messageList} setMessageList={setMessageList} />}
         </>
@@ -260,6 +258,7 @@ function PostingForm({
   refreshPosts,
   isReservationEnded,
   mapData,
+  showNotification,
 }) {
   const [type, setType] = useState("탑승자");
   const [time, setTime] = useState("");
@@ -342,12 +341,12 @@ function PostingForm({
 
         if (response.status === 200) {
           setIsReservationCompleted(true);
-          alert("예약이 마감되었습니다.");
+          showNotification("예약이 마감되었습니다.", 'success');
           refreshPosts();
         }
       } catch (error) {
         console.error('예약 마감 처리 중 오류 발생:', error);
-        alert('예약 마감 처리에 실패했습니다.');
+        showNotification('예약 마감 처리에 실패했습니다.', 'error');
       }
     }
   };
@@ -370,12 +369,12 @@ function PostingForm({
 
   const handlePayment = async () => {
     if (!paymentAmount || isNaN(paymentAmount) || paymentAmount <= 0) {
-      alert('올바른 결제 금액을 입력해주세요.');
+      showNotification('올바른 결제 금액을 입력해주세요.', 'error');
       return;
     }
 
     if (editData.title.includes('탑승자') && (!editData.reservations || editData.reservations.length === 0)) {
-      alert('예약이 없어 결제를 진행할 수 없습니다.');
+      showNotification('예약이 없어 결제를 진행할 수 없습니다.', 'error');
       return;
     }
 
@@ -416,27 +415,16 @@ function PostingForm({
 
       if (response.status) {
         console.log('결제 성공:', response.data);
-        alert(`${paymentAmount}원 결제가 완료되었습니다.`);
+        showNotification(`${paymentAmount}원 결제가 완료되었습니다.`, 'success');
         setPaymentAmount('');
         window.location.reload()
       }
     } catch (error) {
       console.error('결제 처리 중 오류 발생:', error);
-      if (error.response) {
-        console.log('에러 응답:', error.response.data);
-        console.log('에러 상태:', error.response.status);
-        console.log('에러 헤더:', error.response.headers);
-        if (error.response.data && error.response.data.message) {
-          alert(`결제 실패: ${error.response.data.message}`);
-        } else {
-          alert('결제에 실패했습니다. 서버 오류가 발생했습니다.');
-        }
-      } else if (error.request) {
-        console.log('요청 에러:', error.request);
-        alert('서버에 연결할 수 없습니다. 네트워크 연결을 확인해 주세요.');
+      if (error.response && error.response.data && error.response.data.message) {
+        showNotification(`결제 실패: ${error.response.data.message}`, 'error');
       } else {
-        console.log('기타 에러:', error.message);
-        alert(error.message || '알 수 없는 오류가 발생했습니다.');
+        showNotification('이미 결제되었습니다.', 'error');
       }
     } finally {
       setIsPaymentProcessing(false);
@@ -456,7 +444,7 @@ function PostingForm({
           value={type}
           onChange={(e) => setType(e.target.value)}
           disabled={!isSameUser}
-        >
+        >  
           <option value="탑승자">탑승자</option>
           <option value="운전자">운전자</option>
           <option value="택시">택시</option>
