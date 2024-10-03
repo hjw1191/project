@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import "./Main.css";
@@ -8,6 +9,7 @@ import axios from "../api/axios.js";
 import ConfirmModal from "./ConfirmModal.js"; 
 
 export function Main() {
+  const navigate = useNavigate();
   const [trips, setTrips] = useState([]);
   const [filteredTrips, setFilteredTrips] = useState([]);
   const [activeFilter, setActiveFilter] = useState("전체");
@@ -22,11 +24,8 @@ export function Main() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [userId, setUserId] = useState(null);
-  const [userReservation, setUserReservation] = useState(null);
-  const [isReservationLoading, setIsReservationLoading] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [pendingSearchParams, setPendingSearchParams] = useState(null);
-  const [selectedPostId, setSelectedPostId] = useState(null);
   const boardRef = useRef(null);
   const [viewedReservations, setViewedReservations] = useState(() => {
     const stored = localStorage.getItem('viewedReservations');
@@ -115,78 +114,24 @@ export function Main() {
       if (reservation && reservation.id) {
         toast.info(`새로운 예약이 있습니다: ${reservation.from}에서 ${reservation.to}로`, {
           position: "bottom-right",
-          //autoClose: 5000,
           hideProgressBar: false,
           closeOnClick: true,
           pauseOnHover: true,
           draggable: true,
           progress: undefined,
-          onClick: () => handleReservationClick(reservation.postId)
-          
+          onClick: () => handleReservationClick()
         });
         setViewedReservations(prev => [...prev, reservation.id]);
       }
     });
   };
 
-  const handleReservationClick = async (postId) => {
-    console.log(`게시물 ID ${postId}로 이동합니다.`);
-    console.log('현재 trips 상태:', trips);
-    setSelectedPostId(postId);
-    
-    try {
-      console.log('예약 정보 로딩 시작');
-      setIsReservationLoading(true);
-      const selectedTrip = trips.find(trip => trip.id === postId);
-      console.log('선택된 여행:', selectedTrip);
-
-      if (selectedTrip) {
-        console.log('사용자 예약 정보 가져오기 시작');
-        const reservation = await fetchUserReservation(postId);
-        console.log('가져온 예약 정보:', reservation);
-
-        const isReservationEnded = selectedTrip.title.endsWith('[예약마감]');
-        console.log('예약 마감 여부:', isReservationEnded);
-
-        const updatedTrip = {
-          ...selectedTrip,
-          isReservationEnded: isReservationEnded
-        };
-
-        console.log('상태 업데이트 시작');
-        setUserReservation(reservation);
-        setSelectedTrip(updatedTrip);
-        setIsEditModalOpen(true);
-        console.log('isEditModalOpen 상태 변경됨:', true);
-
-        if (reservation) {
-          setViewedReservations(prev => [...prev, reservation.id]);
-        }
-      } else {
-        console.log('선택된 여행을 찾을 수 없습니다. postId:', postId);
-        alert('해당 게시물을 찾을 수 없습니다. 페이지를 새로고침 해주세요.');
-      }
-    } catch (error) {
-      console.error('예약 정보를 가져오는 데 실패했습니다:', error);
-      alert('예약 정보를 가져오는 데 실패했습니다. 다시 시도해 주세요.');
-    } finally {
-      setIsReservationLoading(false);
-      console.log('예약 정보 로딩 완료');
-    }
-
-    // 게시물로 스크롤
-    if (boardRef.current) {
-      setTimeout(() => {
-        const postElement = boardRef.current.querySelector(`[data-post-id="${postId}"]`);
-        if (postElement) {
-          postElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          console.log('게시물로 스크롤 완료');
-        } else {
-          console.log('해당 게시물 요소를 찾을 수 없습니다.');
-        }
-      }, 100);
-    }
-  };
+  const handleReservationClick = async () => {
+    // 1초 대기
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    // 마이페이지로 이동
+    navigate('/mypage', { state: { activeSection: 'MyPost' } });
+};
 
   const applyFiltersAndSearch = () => {
     let result = trips;
@@ -221,56 +166,21 @@ export function Main() {
     fetchTrips(); // 게시물 추가 후 목록 새로고침
   };
 
-  const fetchUserReservation = async (postId) => {
-    console.log('fetchUserReservation 시작. postId:', postId);
-    setIsReservationLoading(true);
-    try {
-      const token = localStorage.getItem('token');
-      console.log('토큰 확인:', token ? '존재함' : '존재하지 않음');
-      const response = await axios.get('/reserve/gets', {
-        headers: { 'Authorization': `${token}` }
-      });
-      console.log('예약 정보 응답:', response.data);
-      const userReservation = response.data.data.find(
-        reservation => reservation.post && reservation.post.id === postId && reservation.bookerId === userId
-      );
-      console.log('찾은 사용자 예약:', userReservation);
-      return userReservation || null;
-    } catch (error) {
-      console.error('예약 정보 가져오기 실패:', error);
-      throw error;
-    } finally {
-      setIsReservationLoading(false);
-      console.log('fetchUserReservation 종료');
-    }
-  };
-
   const handleEditClick = async (trip) => {
-    setIsReservationLoading(true);
-    try {
-      const reservation = await fetchUserReservation(trip.id);
-      const isReservationEnded = trip.title.endsWith('[예약마감]');
+    const isReservationEnded = trip.title.endsWith('[예약마감]');
 
-      const updatedTrip = {
-        ...trip,
-        isReservationEnded: isReservationEnded
-      };
+    const updatedTrip = {
+      ...trip,
+      isReservationEnded: isReservationEnded
+    };
 
-      setUserReservation(reservation);
-      setSelectedTrip(updatedTrip);
-      setIsEditModalOpen(true);
-    } catch (error) {
-      console.error('예약 정보를 가져오는 데 실패했습니다:', error);
-      alert('예약 정보를 가져오는 데 실패했습니다. 다시 시도해 주세요.');
-    } finally {
-      setIsReservationLoading(false);
-    }
+    setSelectedTrip(updatedTrip);
+    setIsEditModalOpen(true);
   };
 
   const handleCloseEditModal = () => {
     setIsEditModalOpen(false);
     setSelectedTrip(null);
-    setUserReservation(null);
     fetchTrips(); // 모달이 닫힐 때 목록 새로고침
   };
 
@@ -363,7 +273,6 @@ export function Main() {
         filteredTrips={filteredTrips}
         handleEditClick={handleEditClick}
         userId={userId}
-        selectedPostId={selectedPostId}
       />
       <Post
         isOpen={isWriteModalOpen}
@@ -379,7 +288,6 @@ export function Main() {
         editData={selectedTrip}
         refreshPosts={fetchTrips}
         postId={selectedTrip?.id}
-        userReservation={userReservation}
         userId={userId}
         isReservationEnded={selectedTrip?.isReservationEnded}
       />
@@ -393,7 +301,7 @@ export function Main() {
   );
 }
 
-export const Board = React.forwardRef(({ isLoading, error, filteredTrips, handleEditClick, userId, selectedPostId }, ref) => {
+export const Board = React.forwardRef(({ isLoading, error, filteredTrips, handleEditClick, userId }, ref) => {
   return (
     <section id="Board" ref={ref}>
       {isLoading ? (
@@ -420,7 +328,7 @@ export const Board = React.forwardRef(({ isLoading, error, filteredTrips, handle
                 <div
                   key={trip.id || index}
                   data-post-id={trip.id}
-                  className={`Card ${trip.isNewlyCreated ? 'newly-created' : ''} ${selectedPostId === trip.id ? 'selected' : ''}`}
+                  className={`Card ${trip.isNewlyCreated ? 'newly-created' : ''}`}
                   onClick={() => handleEditClick(trip)}
                 >
                   <div className="row1">
