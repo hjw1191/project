@@ -221,7 +221,7 @@ export function Main() {
     if (pendingSearchParams) {
       try {
         await createNewTrip(pendingSearchParams);
-        showNotification('검색 결과를 바탕으로 새 게시물이 작성되었습니다.', 'success');
+        showNotification('새 게시물이 작성되었습니다.', 'success');
         setPendingSearchParams(null);
       } catch (error) {
         showNotification('게시물 작성에 실패했습니다.', 'error');
