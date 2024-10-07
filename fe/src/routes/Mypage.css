@@ -1,0 +1,200 @@
+/* 마이페이지 레이아웃 */
+#Mypage {
+  padding-top: 100px;
+  width: 100%; height: 100vh;
+  background-color: #f7f8fe;
+  gap: 10px;
+  display: flex;
+  justify-content: center;
+  overflow-y: scroll;
+}
+
+/* 사이드 내비게이션 레이아웃 */
+#SNB {
+  width: 300px;
+  gap: 10px;
+  display: flex;
+  flex-direction: column;
+}
+#SNB .myProfile {
+  padding: 20px;
+  gap: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #fff;
+}
+#SNB .leaf {
+  width: 30px;
+}
+#SNB .myImg {
+  width: 120px;
+  aspect-ratio: 1;
+  border-radius: 50% !important;
+}
+#SNB .myName {
+  padding: 8px 16px;
+  background-color: #fff;
+}
+
+/* 사이드 내비게이션 드랍다운박스 */
+#SNB > details {
+  padding: 20px;
+  background-color: #fff;
+}
+#SNB > details > summary {
+  font-size: 16px;
+  cursor: pointer;
+}
+#SNB > details > ul {
+  margin-top: 20px;
+  gap: 20px;
+  display: flex;
+  flex-direction: column;
+}
+#SNB details summary {
+  font-size: 18px;
+  font-weight: 500;
+}
+
+/* 컨테이너 크기 처리 */
+#ChangeInfo,
+#MyPoint,
+#MyPost,
+#Withdrawal,
+#MyReserve {
+  padding: 20px;
+  width: 580px;
+  background-color: #fff;
+  gap: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 패딩 처리 */
+#ChangeInfo .wrap > div,
+#ChangeInfo .wrap > input,
+#MyPoint .currentPoint,
+#MyPoint .Board ,
+#MyPost .postHistory,
+#Withdrawal > div,
+#MyReserve .Board {
+  padding: 10px 16px;
+  color: #666;
+  font-weight: 400;
+  height: fit-content;
+}
+
+/* 보더 처리 */
+.myName,
+#SNB > div,
+#SNB > details,
+#ChangeInfo,
+#ChangeInfo .wrap > div,
+#ChangeInfo .wrap > input,
+#MyPoint,
+#MyPoint .currentPoint,
+#MyPoint .pointHistory,
+#MyPost,
+#Withdrawal,
+#MyReserve {
+  border-radius: 6px;
+  border: 1px solid #ddd;
+}
+
+/* 폰트 사이즈 처리 */
+#ChangeInfo > h2,
+#MyPoint > h2,
+#MyPost > h2,
+#Withdrawal > h2,
+#MyReserve > h2 {
+  color: #333;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+/* 컴포넌트 안 버튼 처리 */
+.btn_change,
+.btn_confirm {
+  padding: 4px 12px;
+  margin-left: auto;
+  width: fit-content;
+  color: #fff;
+  border-radius: 4px;
+  background-color: #FF6600;
+}
+.btn_confirm {
+  color: #333;
+  background-color: #eee;
+}
+
+/* 내 정보 관리 컴포넌트 */
+#ChangeInfo .cont {
+  gap: 10px;
+  display: flex;
+  flex-direction: column;
+}
+#ChangeInfo .wrap {
+  gap: 10px;
+  display: grid;
+  grid-template-columns: 1fr 4fr;
+  align-items: center;
+}
+
+/* 내 포인트 컴포넌트 */
+#MyPoint ul {
+  padding: 0;
+  gap: 10px;
+  display: flex;
+  flex-direction: column-reverse;
+}
+#MyPoint li {
+  padding: 10px;
+  gap: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  cursor: unset;
+}
+#MyPoint li p {
+  padding: 10px;
+}
+#MyPoint li p:not(:first-child) {
+  flex: 1;
+  width: calc(50% - 10px);
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  gap: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+#MyPoint li p:first-child {
+  width: 100%;
+}
+#MyPoint li p:last-child {
+  font-size: 14px;
+}
+
+/* 내가 작성한 글 컴포넌트 */
+#MyPost .Board,
+#MyReserve .Board {
+  padding: 0;
+  gap: 20px;
+}
+#MyPost #Card,
+#MyReserve #Card {
+  width: 100%;
+}
+
+
+/* 회원탈퇴 컴포넌트 */
+#Withdrawal > div {
+  padding: 40px;
+  border-radius: 8px;
+  background-color: #f7f8f9;
+  text-align: center;
+  display: grid;
+  place-items: center;
+}

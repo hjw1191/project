@@ -1,0 +1,212 @@
+#Main {
+  width: 100vw; height: 100vh;
+  background-color: #f7f8fe;
+  display: flex;
+  overflow: hidden;
+  overflow-y: scroll;
+}
+
+
+/* 검색 섹션 */
+#Search {
+  position: sticky;
+  top: 0;
+  padding-top: 120px;
+  width: 400px; height: 100vh;
+  background-color: #111;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+#Search h1 {
+  padding-left: 40px;
+  width: 100%;
+  color: #fff;
+  font-size: 24px;
+  font-weight: 500;
+}
+#Search form {
+  padding: 20px 40px 0;
+  width: 100%;
+  gap: 10px;
+  display: flex;
+  flex-direction: column;
+}
+#Search form input[type="text"],
+#Search form input[type="date"],
+#Search .butn_search,
+#Search .butn_write {
+  padding: 10px;
+  background-color: #fff;
+  border-radius: 4px;
+}
+#Search .butn_search,
+#Search .butn_write {
+  font-weight: 600;
+  background-color: #DBFF3D;
+  transition: all 0.1s;
+}
+
+
+/* 보드 섹션 */
+#Board {
+  width: 100%; height: fit-content;
+  padding: 110px 40px 40px 40px;
+  gap: 20px;
+  display: flex;
+  flex-direction: column;
+}
+.Board {
+  gap: 20px;
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+
+/* 필터 섹션 */
+#FilterButtons {
+  width: 100%;
+  gap: 10px;
+  display: flex;
+}
+#FilterButtons button {
+  padding: 6px 12px;
+  height: fit-content;
+  font-size: 14px;
+  border-radius: 4px;
+  background-color: #fff;
+  border: 1px solid #ddd;
+}
+
+
+/* 카드 컴포넌트 */
+#Card {
+  position: relative;
+  padding: 20px;
+  width: calc(100% / 3 - 14px); height: fit-content;
+  display: flex;
+  flex-direction: column;
+  border-radius: 30px;
+  background-color: #fff;
+  box-shadow: 25px 25px 40px 10px rgba(0,0,0,0.1);
+  cursor: pointer;
+}
+#Card:hover {
+  transform: translate(0, -10px) scale(1.03);
+}
+/* 카드 행 패딩 처리 */
+#Card .post-type,
+#Card .journey,
+#Card .carpool-type,
+#Card .promise {
+  margin-top: 10px;
+}
+/* 카드 행 스타일링 */
+#Card .user-name {
+  padding: 4px 8px 0;
+  font-size: 20px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+#Card .post-type {
+  position: relative;
+  width: 100%; aspect-ratio: 3 / 1;
+  border: 1px solid #eee;
+  border-radius: 16px;
+  overflow: hidden;
+}
+#Card .carpool-type {
+  padding: 2px;
+  border-radius: 50px;
+  border: 1px solid #eee;
+  background-color: #f7f8f9;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+#Card .carpool-type span {
+  flex: 1;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  border-radius: 50px;
+}
+.switch-on {
+  color: #fff;
+  font-weight: 400 !important;
+  background-color: #333;
+}
+.taxi-party {
+  background-color: #DBFF3D;
+}
+#Card .journey {
+  /* padding: 4px; */
+  /* border-radius: 16px; */
+  /* background-color: #F0F1F5; */
+  border-radius: 16px;
+  border: 1px solid #eee;
+  /* gap: 4px; */
+  display: flex;
+}
+#Card .journey > div {
+  flex: 1;
+  padding: 14px 10px;
+  /* background-color: #fff; */
+  /* border-radius: 12px; */
+  gap: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+}
+#Card .journey > div span {
+  /* padding: 0 10px; */
+  width: 100%;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#Card .journey > div span:nth-child(1) {
+  color: #aaa;
+}
+#Card .journey > div span:nth-child(2) {
+  font-size: 22px;
+}
+#Card .promise {
+  margin-left: 4px;
+  margin-right: 4px;
+  padding: 30px 0;
+  border-top: 1px dashed #ccc;
+  border-bottom: 1px dashed #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+#Card .promise > span {
+  color: #aaa;
+}
+#Card .booking {
+  margin-top: 4px;
+  padding: 10px;
+  text-align: center;
+  border-radius: 4px 4px 20px 20px;
+  background-color: #DBFF3D;
+}
+#Card .Cover {
+  position: absolute;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  overflow: hidden;
+}
+#Card .Cover img {
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+}

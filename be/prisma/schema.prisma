@@ -1,0 +1,88 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "mysql"
+    url      = env("DATABASE_URL")
+}
+
+
+model User {
+    id                    Int            @id @default(autoincrement())
+    email                 String         @unique
+    password              String
+    name                  String        
+    gender                Gender
+    point                 Int            @default(10000)
+    role                  Role           @default(USER)
+    posts                 Post[]         @relation("Author")
+    reservationsMade      Reservation[]  @relation("ReservationsMade")
+    chats                 Chat[]         @relation("UserChats")
+    pointTransactions     PointTransaction[] @relation("UserTransactions")
+}
+
+model Post {
+    id                    Int            @id @default(autoincrement())
+    createdAt             DateTime       @default(now())
+    updatedAt             DateTime       @updatedAt
+    title                 String
+    cost                  Int?           @default(0)
+    type                  Role?          
+    author                User           @relation("Author", fields: [authorId], references: [id], onDelete: Cascade)
+    authorId              Int
+    reservations          Reservation[]   
+}
+
+model Reservation {
+    id                    Int              @id @default(autoincrement())
+    from                  String
+    to                    String
+    date                  DateTime
+    cost                  Int?             @default(0)
+    status                Status           @default(PENDING)
+    post                  Post             @relation(fields: [postId], references: [id], onDelete: Cascade)
+    postId                Int
+    booker                User             @relation("ReservationsMade", fields: [bookerId], references: [id], onDelete: Cascade)
+    bookerId             Int
+    pointTransactions     PointTransaction[] @relation("ReservationTransaction") // One-to-Many relationship
+    @@unique([postId, bookerId])
+}
+
+model PointTransaction {
+    id              Int         @id @default(autoincrement())
+    userId          Int
+    reservationId   Int          
+    amount          Int
+    description     String
+    createdAt       DateTime     @default(now())
+    user            User         @relation("UserTransactions", fields: [userId], references: [id], onDelete: Cascade)
+    reservation     Reservation   @relation("ReservationTransaction", fields: [reservationId], references: [id], onDelete: Cascade) // Link to Reservation
+}
+
+model Chat {
+    id                    Int            @id @default(autoincrement())
+    chat                  String
+    createdAt             DateTime       @default(now())
+    user                  User           @relation("UserChats", fields: [userId], references: [id], onDelete: Cascade)
+    userId                Int
+    roomId                Int
+}
+
+enum Status {
+    PENDING
+    COMPLETED
+    FAILED
+}
+
+enum Role {
+    USER
+    DRIVER
+    TAXI
+    ADMIN
+}
+
+enum Gender {
+    MALE
+    FEMALE
+}
