@@ -1,5 +1,6 @@
 # 당근 마차 (Carrot Carriage)
 
+![주요기능](https://private-user-images.githubusercontent.com/75131851/374029518-185a5b4d-7866-4feb-8589-70bd5e91d3c4.gif?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MjgyNzYyMzAsIm5iZiI6MTcyODI3NTkzMCwicGF0aCI6Ii83NTEzMTg1MS8zNzQwMjk1MTgtMTg1YTViNGQtNzg2Ni00ZmViLTg1ODktNzBiZDVlOTFkM2M0LmdpZj9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFWQ09EWUxTQTUz)
 ## 프로젝트 개요
 당근 마차는 당근 마켓 앱을 모티브로 한 근거리 카풀 및 택시 나눠타기 서비스입니다. 이 웹 애플리케이션을 통해 사용자들은 운전자, 탑승자, 또는 택시로 등록하여 카풀을 공유하고 예약할 수 있습니다.
 
